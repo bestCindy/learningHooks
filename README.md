@@ -40,6 +40,8 @@ React 有两套 API
 - 数组的第一个成员是一个变量（例子中的 `buttonText`）
 - 数组的第二个成员是一个函数，用来更新状态（例子中的 `setButtonText`） 
 
+注意： 它类似 class 组件中的 `this.setState`，但是不会把新的 state 和旧的 state 进行合并，而是直接替换
+
 #### `useContext` 共享状态钩子
 
 `useState` 用来在组件之间共享状态
@@ -77,3 +79,19 @@ reducer 是用来计算状态
 用法：
 - `useEffect()` 第一个参数是执行副效应的函数，第二个参数是副效应函数的依赖项，只有该变量发生变化的时候，副效应函数才执行
 - 如果第二个参数是一个空数组，表明副效应参数没有任何依赖项，所以，副效应函数这时只会在组件加载进 DOM 后执行一次
+
+#### 关于为什么不能改变 `useState` 的顺序
+
+React 假设当你多次调用 `useState` 的时候，你能保证每次渲染的时候，它们的调用顺序是不变的，也就是不能把 `useState` 写在条件判断里面
+
+原因：
+
+React 靠的是 hook 调用顺序知道哪个 state 对应哪个 `useState`
+
+只要 hook 的调用顺序在多次渲染之间保持一致，React 就能正确的将内部的 state 和对应的 hook 进行关联
+
+React 在初次渲染的时候，会按照 `useState、useEffect` 的顺序，把 state，deps 等按照顺序塞到 memorizedState 里面
+
+然后更新的时候，会按照顺序，从 memorizedState 中把上次记录的值拿出来
+
+每个组件内部都有一个 “记忆单元格” 的列表。是一个我们用来存储的 JS 对象。当用 `useState()` 调用一个 hook 的时候，它会读取当前的单元格，然后把指针移动到下一个。这就是多个 `useState()` 调用会得到各自独立的本地 state 的原因 
